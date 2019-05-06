@@ -16,28 +16,26 @@
 
 <androidx.preference.PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <PreferenceCategory app:title="@string/messages_header">
+    <SwitchPreferenceCompat
+        app:key="enable_call_detect"
+        app:title="@string/enable_call_detect_title" />
+
+    <PreferenceCategory app:title="@string/network_header">
 
         <EditTextPreference
-            app:key="signature"
-            app:title="@string/signature_title"
+            app:key="ssid"
+            app:title="@string/ssid_title"
             app:useSimpleSummaryProvider="true" />
 
-        <ListPreference
-            app:defaultValue="reply"
-            app:entries="@array/reply_entries"
-            app:entryValues="@array/reply_values"
-            app:key="reply"
-            app:title="@string/reply_title"
+        <EditTextPreference
+            app:key="server_address"
+            app:title="@string/server_address_title"
             app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/sync_header">
+    <PreferenceCategory app:title="@string/time_header">
 
-        <SwitchPreferenceCompat
-            app:key="sync"
-            app:title="@string/sync_title" />
 
         <SwitchPreferenceCompat
             app:dependency="sync"
