@@ -54,6 +54,15 @@ class CallDetectorReceiver : BroadcastReceiver() {
             return
         }
 
+        with(sharedPreferences.edit()) {
+            putInt(last_state_key, state)
+            commit()
+        }
+
+        if (!sharedPreferences.getBoolean("enable_call_detect", true)) {
+            return
+        }
+
         // TODO : Should probably select server from which network your on.
         val server = sharedPreferences.getString("server", "http://192.168.0.103") ?: return
         val id = sharedPreferences.getString("id", "main_phone") ?: return
@@ -74,14 +83,9 @@ class CallDetectorReceiver : BroadcastReceiver() {
                 if (lastState == TelephonyManager.CALL_STATE_RINGING) {
                     // Oh no! Missed call!
                     Log.d(tag, "Missed")
-                    changeStatus(server, id, "answered")
+                    changeStatus(server, id, "missed")
                 }
             }
-        }
-
-        with(sharedPreferences.edit()) {
-            putInt(last_state_key, state)
-            commit()
         }
 
     }
@@ -120,45 +124,35 @@ class CallDetectorReceiver : BroadcastReceiver() {
     private fun approvedTime(sharedPreferences: SharedPreferences): Boolean {
         val earliestAlarmToday = getTimeToday(sharedPreferences.getString("earliest", "07:00")) ?: return false
         val latestAlarmToday = getTimeToday(sharedPreferences.getString("latest", "23:00")) ?: return false
-        if (earliestAlarmToday.after(latestAlarmToday)) {
-            // TODO: Maybe throw or assert or something. This should never happen.
-            return false
-        }
-
         val now = Date()
-        return !(earliestAlarmToday.after(now) || latestAlarmToday.before(now))
-    }
-
-    companion object {
-
-        internal class ChangeStatusTask(val urlSpec: String) : AsyncTask<String, Void, Int>() {
-            private val tag = "ChangeStatusTask"
-
-            override fun doInBackground(vararg params: String?): Int {
-                val githubEndpoint = URL(urlSpec)
-                val serverConnection = githubEndpoint.openConnection() as HttpURLConnection
-                serverConnection.requestMethod = "PATCH"
-                serverConnection.setDoOutput(true)
-                serverConnection.setRequestProperty("Content-Type", "application/merge-patch+json")
-                val outStream = serverConnection.getOutputStream()
-                val outStreamWriter = OutputStreamWriter(outStream, "UTF-8")
-                outStreamWriter.write("""{"status" : "$status")""")
-                outStreamWriter.flush()
-                outStreamWriter.close()
-                outStream.close()
-
-                serverConnection.connect()
-
-                if (serverConnection.responseCode != HttpURLConnection.HTTP_NO_CONTENT) {
-                    Log.d(tag, "Got error contacting server : ${serverConnection.responseCode}")
-                }
-                return serverConnection.responseCode
-            }
+        if (earliestAlarmToday.after(latestAlarmToday)) {
+            return now.before(latestAlarmToday) || !now.before(earliestAlarmToday)
+        } else {
+            return !(earliestAlarmToday.after(now) || latestAlarmToday.before(now))
         }
+
     }
 
     private fun changeStatus(server: String, id: String, status: String) {
-        ChangeStatusTask("$server/phone/$id").execute(status)
+        AsyncTask.execute {
+            val githubEndpoint = URL("$server/phone/$id")
+            val serverConnection = githubEndpoint.openConnection() as HttpURLConnection
+            serverConnection.requestMethod = "PATCH"
+            serverConnection.setDoOutput(true)
+            serverConnection.setRequestProperty("Content-Type", "application/merge-patch+json")
+            val outStream = serverConnection.getOutputStream()
+            val outStreamWriter = OutputStreamWriter(outStream, "UTF-8")
+            outStreamWriter.write("""{"status" : "$status")""")
+            outStreamWriter.flush()
+            outStreamWriter.close()
+            outStream.close()
+
+            serverConnection.connect()
+
+            if (serverConnection.responseCode != HttpURLConnection.HTTP_NO_CONTENT) {
+                Log.d(tag, "Got error contacting server : ${serverConnection.responseCode}")
+            }
+        }
     }
 
 }

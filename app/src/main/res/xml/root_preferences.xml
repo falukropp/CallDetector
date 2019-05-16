@@ -36,6 +36,24 @@
 
     <PreferenceCategory app:title="@string/time_header">
 
+        <!-- Obviously clumsy and should be replaced by some timepicker -->
+
+        <ListPreference
+            app:key="earliest"
+            app:title="Earliest"
+            app:useSimpleSummaryProvider="true"
+            app:entries="@array/hours"
+            app:entryValues="@array/hours"
+            app:dialogTitle="Select earliest"/>
+
+        <ListPreference
+            app:key="latest"
+            app:title="Latest"
+            app:useSimpleSummaryProvider="true"
+            app:entries="@array/hours"
+            app:entryValues="@array/hours"
+            app:dialogTitle="Select latest"/>
+
     </PreferenceCategory>
 
 </androidx.preference.PreferenceScreen>
