@@ -135,6 +135,7 @@ class CallDetectorReceiver : BroadcastReceiver() {
 
     private fun changeStatus(server: String, id: String, status: String) {
         AsyncTask.execute {
+            // TODO : Should use better protocol for this... MQTT?
             val githubEndpoint = URL("$server/phone/$id")
             val serverConnection = githubEndpoint.openConnection() as HttpURLConnection
             serverConnection.requestMethod = "PATCH"
