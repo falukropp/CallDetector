@@ -64,7 +64,13 @@ class CallDetectorReceiver : BroadcastReceiver() {
         }
 
         // TODO : Should probably select server from which network your on.
-        val server = sharedPreferences.getString("server", "http://192.168.0.103") ?: return
+        val server_setting = sharedPreferences.getString("server_address", "http://192.168.0.103") ?: return
+        // TODO: Should probably be enforced in preferences or something. Might support other protocols than http/https later on though.
+        val server = if (server_setting.startsWith("http")) {
+            server_setting
+        } else {
+            "http://" + server_setting;
+        }
         val id = sharedPreferences.getString("id", "main_phone") ?: return
 
         when (state) {
@@ -143,7 +149,7 @@ class CallDetectorReceiver : BroadcastReceiver() {
             serverConnection.setRequestProperty("Content-Type", "application/merge-patch+json")
             val outStream = serverConnection.getOutputStream()
             val outStreamWriter = OutputStreamWriter(outStream, "UTF-8")
-            outStreamWriter.write("""{"status" : "$status")""")
+            outStreamWriter.write("""{"status" : "$status"}""")
             outStreamWriter.flush()
             outStreamWriter.close()
             outStream.close()
