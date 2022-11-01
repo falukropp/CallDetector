@@ -15,5 +15,6 @@
     <string name="server_address_title">Server address</string>
 
     <!-- Time Preferences -->
-    <string name="time_title">Times</string>
+    <string name="earliest_time">Select earliest</string>
+    <string name="latest_time">Select latest</string>
 </resources>

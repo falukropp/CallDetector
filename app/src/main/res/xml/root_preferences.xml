@@ -44,7 +44,7 @@
             app:useSimpleSummaryProvider="true"
             app:entries="@array/hours"
             app:entryValues="@array/hours"
-            app:dialogTitle="Select earliest"/>
+            app:dialogTitle="@string/earliest_time"/>
 
         <ListPreference
             app:key="latest"
@@ -52,7 +52,7 @@
             app:useSimpleSummaryProvider="true"
             app:entries="@array/hours"
             app:entryValues="@array/hours"
-            app:dialogTitle="Select latest"/>
+            app:dialogTitle="@string/latest_time"/>
 
     </PreferenceCategory>
 

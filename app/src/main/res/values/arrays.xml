@@ -1,5 +1,5 @@
 <resources>
-    <!-- Reply Preference -->
+
     <string-array name="hours">
         <item>00:00</item>
         <item>01:00</item>

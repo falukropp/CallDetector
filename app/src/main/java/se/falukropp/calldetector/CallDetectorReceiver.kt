@@ -24,7 +24,7 @@ class CallDetectorReceiver : BroadcastReceiver() {
 
     private val tag = "MyActivity"
 
-    private val last_state_key = "LAST_STATE"
+    private val lastStateKey = "LAST_STATE"
 
     private fun getStateFromIntent(intent: Intent): Int? {
         // val number = intent.getExtras().getString(TelephonyManager.EXTRA_INCOMING_NUMBER)
@@ -45,7 +45,7 @@ class CallDetectorReceiver : BroadcastReceiver() {
 
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context /* Activity context */)
 
-        val lastState = sharedPreferences.getInt(last_state_key, TelephonyManager.CALL_STATE_IDLE)
+        val lastState = sharedPreferences.getInt(lastStateKey, TelephonyManager.CALL_STATE_IDLE)
 
         if (state == lastState
             || !approvedNetwork(sharedPreferences, context)
@@ -55,7 +55,7 @@ class CallDetectorReceiver : BroadcastReceiver() {
         }
 
         with(sharedPreferences.edit()) {
-            putInt(last_state_key, state)
+            putInt(lastStateKey, state)
             commit()
         }
 
@@ -64,12 +64,12 @@ class CallDetectorReceiver : BroadcastReceiver() {
         }
 
         // TODO : Should probably select server from which network your on.
-        val server_setting = sharedPreferences.getString("server_address", "http://192.168.0.103") ?: return
+        val serverAddress = sharedPreferences.getString("server_address", "http://192.168.0.103") ?: return
         // TODO: Should probably be enforced in preferences or something. Might support other protocols than http/https later on though.
-        val server = if (server_setting.startsWith("http")) {
-            server_setting
+        val server = if (serverAddress.startsWith("http")) {
+            serverAddress
         } else {
-            "http://" + server_setting;
+            "http://${serverAddress}"
         }
         val id = sharedPreferences.getString("id", "main_phone") ?: return
 
@@ -131,10 +131,10 @@ class CallDetectorReceiver : BroadcastReceiver() {
         val earliestAlarmToday = getTimeToday(sharedPreferences.getString("earliest", "07:00")) ?: return false
         val latestAlarmToday = getTimeToday(sharedPreferences.getString("latest", "23:00")) ?: return false
         val now = Date()
-        if (earliestAlarmToday.after(latestAlarmToday)) {
-            return now.before(latestAlarmToday) || !now.before(earliestAlarmToday)
+        return if (earliestAlarmToday.after(latestAlarmToday)) {
+            now.before(latestAlarmToday) || !now.before(earliestAlarmToday)
         } else {
-            return !(earliestAlarmToday.after(now) || latestAlarmToday.before(now))
+            !(earliestAlarmToday.after(now) || latestAlarmToday.before(now))
         }
 
     }
@@ -142,12 +142,12 @@ class CallDetectorReceiver : BroadcastReceiver() {
     private fun changeStatus(server: String, id: String, status: String) {
         AsyncTask.execute {
             // TODO : Should use better protocol for this... MQTT?
-            val githubEndpoint = URL("$server/phone/$id")
-            val serverConnection = githubEndpoint.openConnection() as HttpURLConnection
+            val serverEndpoint = URL("$server/phone/$id")
+            val serverConnection = serverEndpoint.openConnection() as HttpURLConnection
             serverConnection.requestMethod = "PATCH"
-            serverConnection.setDoOutput(true)
+            serverConnection.doOutput = true
             serverConnection.setRequestProperty("Content-Type", "application/merge-patch+json")
-            val outStream = serverConnection.getOutputStream()
+            val outStream = serverConnection.outputStream
             val outStreamWriter = OutputStreamWriter(outStream, "UTF-8")
             outStreamWriter.write("""{"status" : "$status"}""")
             outStreamWriter.flush()
